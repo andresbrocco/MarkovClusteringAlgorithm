@@ -26,12 +26,49 @@
     <title>Markov Clustering Algorithm</title>
   </head>
   <body>
-    <div class="row">
-      <div class="col-8">
+    <div class="row m-0">
+      <div class="col-8 p-0">
         <div id="sketch-holder"></div>
       </div>
-      <div class="col-4">
-        <h1>Parameters:</h1>
+      <div class="col-4 p-3 d-flex flex-column justify-content-around flex-wrap">
+        <h3>Parameters:</h3>
+        <div>
+          <label>Graph type:</label><br>
+          <div class="btn-group btn-group-toggle m-1" data-toggle="buttons">
+            <label class="btn btn-sm btn-primary active">
+              <input type="radio" name="options" id="option1" autocomplete="off" checked> Undirected <i class="fa fa-arrows-h"></i>
+            </label>
+            <label class="btn btn-sm btn-primary">
+              <input type="radio" name="options" id="option2" autocomplete="off"> Directed <i class="fa fa-exchange"></i>
+            </label>
+          </div>
+          <div class="btn-group btn-group-toggle m-1" data-toggle="buttons">
+            <label class="btn btn-sm btn-primary active">
+              <input type="radio" name="options" id="option1" autocomplete="off" checked> Simple <i class="fa fa-long-arrow-right"></i>
+            </label>
+            <label class="btn btn-sm btn-primary">
+              <input type="radio" name="options" id="option2" autocomplete="off"> Weighed <i class="fa fa-balance-scale"></i>
+            </label>
+          </div>
+        </div>
+        <div>
+          <label for="customRange1" class="">Inflation:</label>
+          <input type="range" class="custom-range" id="customRange1">
+        </div>
+        <div>
+          <label for="customRange2" class="">Prune treshold:</label>
+          <input type="range" class="custom-range" id="customRange2">
+        </div>
+        <div>
+          <label for="customRange3" class="">Animation speed:</label>
+          <input type="range" class="custom-range" id="customRange3">
+        </div>
+        <div class="d-flex justify-content-around">
+          <button type="button" class="btn btn-primary"><i class="fa fa-undo"></i></button>
+          <button type="button" class="btn btn-primary"><i class="fa fa-play"></i> <i class="fa fa-pause"></i></button>
+          <button type="button" class="btn btn-primary"><i class="fa fa-step-forward"></i></button>
+          <button type="button" class="btn btn-primary"><i class="fa fa-circle"></i></button>
+        </div>
       </div>
     </div>
   </body>

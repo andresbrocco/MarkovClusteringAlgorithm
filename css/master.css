@@ -1,2 +1,7 @@
+html {
+  overflow: hidden;
+}
+
 #sketch-holder {
+  height: 100vh;
 }

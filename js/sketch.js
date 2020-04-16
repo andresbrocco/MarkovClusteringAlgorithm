@@ -2,8 +2,9 @@ let graphNodes = [];
 let value = 155;
 
 function setup() {
-  var canvas = createCanvas(windowWidth*2/3, min(windowWidth*2/3, windowHeight));
+  var canvas = createCanvas(parseFloat(select('#sketch-holder').style('width')),parseFloat( select('#sketch-holder').style('height')));
   canvas.parent('sketch-holder');
+  console.log("sketch-holder width: "+select('#sketch-holder').style('width')+ "  height: "+select('#sketch-holder').style('height'))
 }
 
 function draw() {
@@ -11,7 +12,8 @@ function draw() {
 }
 
 function windowResized() {
-  resizeCanvas(windowWidth*2/3, min(windowWidth*2/3, windowHeight));
+  resizeCanvas(parseFloat(select('#sketch-holder').style('width')),parseFloat( select('#sketch-holder').style('height')));
+  console.log("width:"+windowWidth*2/3+" height:"+min(windowWidth*2/3, windowHeight));
 }
 
 function mousePressed() {
