@@ -8,7 +8,7 @@ function setup() {
 }
 
 function draw() {
-  background(value);
+  background(color('hsl(180, 37%, 79%)'));
 }
 
 function windowResized() {

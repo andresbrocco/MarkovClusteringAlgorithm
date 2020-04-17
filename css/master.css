@@ -5,3 +5,12 @@ html {
 #sketch-holder {
   height: 100vh;
 }
+
+.parameterColumn {
+  background-color: hsla(180, 33%, 46%, 0.72);
+}
+
+label,
+h3 {
+  text-shadow: 1px 1px 6px hsla(228, 26%, 59%, 0.67);
+}
