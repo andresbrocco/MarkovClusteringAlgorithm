@@ -41,18 +41,18 @@
           <div class="text-center">
             <div class="btn-group btn-group-toggle m-1 shadow-sm" data-toggle="buttons">
               <label class="btn btn-sm btn-primary active">
-                <input type="radio" name="options" id="option1" autocomplete="off" checked> Undirected <i class="fa fa-arrows-h"></i>
+                <input type="radio" name="graphDirection" id="undirectedGraph" autocomplete="off" checked onclick="setGraphDirection('undirectedGraph');"> Undirected <i class="fa fa-arrows-h"></i>
               </label>
               <label class="btn btn-sm btn-primary">
-                <input type="radio" name="options" id="option2" autocomplete="off"> Directed <i class="fa fa-exchange"></i>
+                <input type="radio" name="graphDirection" id="directedGraph" autocomplete="off" onclick="setGraphDirection('directedGraph');"> Directed <i class="fa fa-exchange"></i>
               </label>
             </div>
             <div class="btn-group btn-group-toggle m-1 shadow-sm" data-toggle="buttons">
               <label class="btn btn-sm btn-primary active">
-                <input type="radio" name="options" id="option1" autocomplete="off" checked> Simple <i class="fa fa-long-arrow-right"></i>
+                <input type="radio" name="graphWeight" id="simpleGraph" autocomplete="off" checked onclick="setGraphWeight('simpleGraph');"> Simple <i class="fa fa-long-arrow-right"></i>
               </label>
               <label class="btn btn-sm btn-primary">
-                <input type="radio" name="options" id="option2" autocomplete="off"> Weighed <i class="fa fa-balance-scale"></i>
+                <input type="radio" name="graphWeight" id="weighedGraph" autocomplete="off" onclick="setGraphWeight('weighedGraph');"> Weighed <i class="fa fa-balance-scale"></i>
               </label>
             </div>
           </div>
@@ -89,9 +89,9 @@
         </div>
         <div class="d-flex justify-content-around">
           <button type="button" class="btn btn-primary"><i class="fa fa-undo"></i></button>
-          <button type="button" class="btn btn-primary"><i class="fa fa-play"></i> <i class="fa fa-pause"></i></button>
+          <button type="button" class="btn btn-primary" id="playPauseButton" onclick="playPauseAnimation();"><i class="fa fa-play"></i></button>
           <button type="button" class="btn btn-primary"><i class="fa fa-step-forward"></i></button>
-          <button type="button" class="btn btn-primary"><i class="fa fa-circle"></i></button>
+          <button type="button" class="btn btn-dark text-danger rounded-circle"><i class="fa fa-circle"></i></button>
         </div>
       </div>
     </div>

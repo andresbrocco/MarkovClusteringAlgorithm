@@ -5,6 +5,12 @@ let isMakingNewEdge = false;
 let isMovingNode = false;
 let isDeletingNode = false;
 let edges = math.matrix([0]);
+let graphDirection = 'undirectedGraph';
+let graphWeight = 'simpleGraph';
+let inflationValue = 2;
+let pruneTresholdValue = 1;
+let animationSpeedValue = 1;
+let animationRunning = false;
 
 function setup() {
   var canvas = createCanvas(parseFloat(select('#sketch-holder').style('width')), parseFloat( select('#sketch-holder').style('height')));
@@ -54,15 +60,32 @@ function mouseReleased() {
 function mouseDragged() {
   if (mouseIsOnCanvas()) {
     if (isMovingNode) {
-      nodes[pressedNode].posX = mouseX;
-      nodes[pressedNode].posY = mouseY;
+      nodes[pressedNode].posX = mouseX/width;
+      nodes[pressedNode].posY = mouseY/height;
     }
+  }
+}
+
+function mouseWheel(event) {
+  let edge = getEdge(mouseX, mouseY);
+  if (edge != false) { // If cursor is over an edge
+    edges.set(edge, edges.get(edges)+event.delta/30);
+  }
+}
+
+function getEdge(mouseX, mouseY) {
+  if (true) { // Check if cursor is over an edge
+
+    return // return edge coordinates 
+  } else {
+    // otherwise return false
+    return false
   }
 }
 
 function getNode(mouseX, mouseY) {
   for (var node = 0; node < nodes.length; node++) { // Try to find node where mouse clicked:
-    if (dist(nodes[node].posX, nodes[node].posY, mouseX, mouseY) < 4*nodeRadius) { // Avoid creating nodes too close to each other
+    if (dist(nodes[node].posX*width, nodes[node].posY*height, mouseX, mouseY) < 4*nodeRadius) { // Avoid creating nodes too close to each other
       return node;
     }
   }
@@ -73,11 +96,11 @@ function getNode(mouseX, mouseY) {
 
 function createNode(mouseX, mouseY) {
   nodes.push({
-    posX:mouseX,
-    posY:mouseY,
+    posX:mouseX/width,
+    posY:mouseY/height,
     draw: function() {
       fill('rgb(14, 32, 32)');
-      circle(this.posX, this.posY, 2*nodeRadius);
+      circle(this.posX*width, this.posY*height, 2*nodeRadius);
     }
   });
   // Increase edge matrix size:
@@ -114,8 +137,8 @@ function drawNodes() {
 function drawEdges() {
   // Draw edge that is being connected:
   if(isMakingNewEdge){
-    if (dist(nodes[pressedNode].posX, nodes[pressedNode].posY, mouseX, mouseY) > 2*nodeRadius) {
-      line(nodes[pressedNode].posX, nodes[pressedNode].posY, mouseX, mouseY);
+    if (dist(nodes[pressedNode].posX*width, nodes[pressedNode].posY*height, mouseX, mouseY) > 2*nodeRadius) {
+      line(nodes[pressedNode].posX*width, nodes[pressedNode].posY*height, mouseX, mouseY);
     }
   }
   // Draw the already connected edges:
@@ -123,7 +146,7 @@ function drawEdges() {
     edges.forEach(
       function (value, index, matrix) {
         if (value != 0) {
-          line(nodes[index[0]].posX, nodes[index[0]].posY, nodes[index[1]].posX, nodes[index[1]].posY);
+          line(nodes[index[0]].posX*width, nodes[index[0]].posY*height, nodes[index[1]].posX*width, nodes[index[1]].posY*height);
         }
       }
     );
@@ -135,5 +158,34 @@ function mouseIsOnCanvas() {
     return true;
   } else {
     return false;
+  }
+}
+
+function setInflationValue(value) {
+  inflationValue = value;
+}
+
+function setPruneTresholdValue(value) {
+  pruneTresholdValue = value;
+}
+
+function setAnimationSpeed(value) {
+  animationSpeedValue = value;
+}
+
+function setGraphDirection(value) {
+  graphDirection = value;
+}
+
+function setGraphWeight(value) {
+  graphWeight = value;
+}
+
+function playPauseAnimation() {
+  animationRunning = !animationRunning;
+  if (animationRunning) {
+    $('#playPauseButton').html('<i class="fa fa-pause"></i>');
+  } else {
+    $('#playPauseButton').html('<i class="fa fa-play"></i>');
   }
 }
