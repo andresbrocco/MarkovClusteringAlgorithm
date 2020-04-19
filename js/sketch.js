@@ -1,4 +1,4 @@
-let nodes = [];
+let nodes = math.matrix();
 let nodeRadius = 5;
 let pressedNodeId = [];
 let releasedNodeId = [];
@@ -61,22 +61,24 @@ function mouseReleased() {
 function mouseDragged() {
   if (mouseIsOnCanvas()) {
     if (isMovingNode) {
-      nodes[pressedNodeId].posX = mouseX/width;
-      nodes[pressedNodeId].posY = mouseY/height;
+      nodes.set([pressedNodeId, 0], mouseX/width);
+      nodes.set([pressedNodeId, 1], mouseY/height);
     }
   }
 }
 
 function mouseWheel(event) {
   let weightFactor = 1;
-  if(event.delta > 0) { weightFactor = 1.1;
-  } else {              weightFactor = 0.9;
+  if(event.delta > 0) { weightFactor = 1.05;
+  } else {              weightFactor = 0.95;
   }
-  if(nodes.length > 1){
+  if(nodes.size()[0] > 1){ // More than 1 node
     let edgesUnderCursor = getEdgesUnderCursor(mouseX, mouseY);
     if (edgesUnderCursor != []) { // If cursor is over an edge
       for (var edge = 0; edge < edgesUnderCursor.length; edge++) {
-        edges.set(edgesUnderCursor[edge], constrain(edges.get(edgesUnderCursor[edge])*weightFactor, 0, 1));
+        let newEdgeWeight = constrain(edges.get(edgesUnderCursor[edge])*weightFactor, 0.1, 1);
+        if (newEdgeWeight == 0.1) newEdgeWeight = 0;
+        edges.set(edgesUnderCursor[edge], newEdgeWeight);
       }
     }
   }
@@ -85,10 +87,13 @@ function mouseWheel(event) {
 function getEdgesUnderCursor(mouseX, mouseY) {
   let edgesUnderCursor = [];
   edges.forEach(
-    function (value, index, matrix) {
+    function (value, edgeNodesIds, matrix) {
       if(value > 0) { // if edge exists
-        if(distToEdge(mouseX, mouseY, nodes[index[0]].posX*width, nodes[index[0]].posY*height, nodes[index[1]].posX*width, nodes[index[1]].posY*height) < nodeRadius) {
-          edgesUnderCursor.push(index);
+        if(distToEdge(mouseX, mouseY, nodes.get([edgeNodesIds[0], 0])*width,
+                                      nodes.get([edgeNodesIds[0], 1])*height,
+                                      nodes.get([edgeNodesIds[1], 0])*width,
+                                      nodes.get([edgeNodesIds[1], 1])*height) < nodeRadius) {
+          edgesUnderCursor.push(edgeNodesIds);
         }
       }
     }
@@ -97,75 +102,87 @@ function getEdgesUnderCursor(mouseX, mouseY) {
 }
 
 function getNodeId(mouseX, mouseY) {
-  for (var nodeId = 0; nodeId < nodes.length; nodeId++) { // Try to find node where mouse clicked:
-    if (dist(nodes[nodeId].posX*width, nodes[nodeId].posY*height, mouseX, mouseY) < 4*nodeRadius) { // Avoid creating nodes too close to each other
+  for (var nodeId = 0; nodeId < nodes.size()[0]; nodeId++) { // Try to find node where mouse clicked:
+    if (dist(nodes.get([nodeId, 0])*width,
+             nodes.get([nodeId, 1])*height,
+             mouseX, mouseY) < 4*nodeRadius) { // Avoid creating nodes too close to each other
       return nodeId;
     }
   }
   // If didn't find node, create one:
   createNode(mouseX, mouseY);
-  return nodes.length-1;
+  return nodes.size()[0]-1;
 }
 
 function createNode(mouseX, mouseY) {
-  nodes.push({
-    posX: mouseX/width,
-    posY: mouseY/height,
-    draw: function() {
-      fill(color(0, 0, 0, 255));
-      stroke(color(0, 0, 0, 255));
-      strokeWeight(1)
-      circle(this.posX*width, this.posY*height, 2*nodeRadius);
-    }
-  });
+  nodes.subset(math.index(nodes.size()[0], [0, 1]), [mouseX/width, mouseY/height]);
   // Increase edge matrix size:
-  edges = math.resize(edges, [nodes.length, nodes.length], 0);
+  edges = math.resize(edges, [nodes.size()[0], nodes.size()[0]], 0);
 }
 
 function deleteNode(nodeId) {
-  if(nodes.length > 1){
+  console.log("I will delete the nodeId: "+nodeId);
+  console.log("current edge matrix: "+ edges);
+  let nOfNodes = nodes.size()[0];
+  console.log("number of nodes: "+nOfNodes);
+  if(nOfNodes > 1){
     if(nodeId === 0) {
-      edges = edges.subset(math.index(math.range(1, nodes.length), math.range(1, nodes.length)));
-    } else if (nodeId === nodes.length-1) {
-      edges = edges.subset(math.index(math.range(0, nodes.length-1), math.range(0, nodes.length-1)));
+      console.log("deleting first node");
+      edges = edges.subset(math.index(math.range(1, nOfNodes), math.range(1, nOfNodes)));
+      nodes = nodes.subset(math.index(math.range(1, nOfNodes), [0, 1]));
+    } else if (nodeId === nOfNodes-1) {
+      console.log("deleting last node");
+      edges = edges.subset(math.index(math.range(0, nOfNodes-1), math.range(0, nOfNodes-1)));
+      nodes = nodes.subset(math.index(math.range(0, nOfNodes-1), [0, 1]));
     } else {
+      console.log("deleting middle node");
       // Remove row:
-      edges = math.concat(edges.subset(math.index(math.range(0, nodes.length), math.range(0,         nodeId))),
-                          edges.subset(math.index(math.range(0, nodes.length), math.range(nodeId+1, nodes.length))), 1);
+      edges = math.concat(edges.subset(math.index(math.range(0,         nodeId),  math.range(0, nOfNodes))),
+                          edges.subset(math.index(math.range(nodeId+1, nOfNodes), math.range(0, nOfNodes))), 0);
+      nodes = math.concat(nodes.subset(math.index(math.range(0, nodeId), [0, 1])),
+                          nodes.subset(math.index(math.range(nodeId+1, nOfNodes), [0, 1])), 0);
+      console.log("removed row: " +edges);
       // Remove column:
-      edges = math.concat(edges.subset(math.index(math.range(0,         nodeId),      math.range(0, nodes.length-1))),
-                          edges.subset(math.index(math.range(nodeId+1, nodes.length), math.range(0, nodes.length-1))), 0);
+      edges = math.concat(edges.subset(math.index(math.range(0, nOfNodes-1), math.range(0,         nodeId))),
+                          edges.subset(math.index(math.range(0, nOfNodes-1), math.range(nodeId+1, nOfNodes))), 1);
+      console.log("removed column: " +edges);
     }
   } else {
-    edges = math.matrix([0])
+    edges = math.matrix([0]);
+    nodes = math.matrix();
   }
-  // Remove node:
-  nodes.splice(nodeId, 1);
+  console.log("final edge matrix: "+ edges);
 }
 
 function drawNodes() {
-  for (var nodeId = 0; nodeId < nodes.length; nodeId++) {
-    nodes[nodeId].draw();
+  for (var nodeId = 0; nodeId < nodes.size()[0]; nodeId++) {
+    fill(color(0, 0, 0, 255));
+    stroke(color(0, 0, 0, 255));
+    strokeWeight(1)
+    circle(nodes.get([nodeId, 0])*width, nodes.get([nodeId, 1])*height, 2*nodeRadius);
   }
 }
 
 function drawEdges() {
   // Draw edge that is being connected:
   if(isMakingNewEdge){
-    if (dist(nodes[pressedNodeId].posX*width, nodes[pressedNodeId].posY*height, mouseX, mouseY) > 2*nodeRadius) {
+    if (dist(nodes.get([pressedNodeId, 0])*width, nodes.get([pressedNodeId, 1])*height, mouseX, mouseY) > 2*nodeRadius) {
       stroke(color(0, 0, 0, 255));
       strokeWeight(nodeRadius*0.75)
-      line(nodes[pressedNodeId].posX*width, nodes[pressedNodeId].posY*height, mouseX, mouseY);
+      line(nodes.get([pressedNodeId, 0])*width, nodes.get([pressedNodeId, 1])*height, mouseX, mouseY);
     }
   }
   // Draw the already connected edges:
-  if(nodes.length > 1) {
+  if(nodes.size()[0] > 1) {
     edges.forEach(
-      function (value, index, matrix) {
-        if (value != 0) {
-          stroke(color(0, 0, 0, 255*value));
-          strokeWeight(nodeRadius*value*0.75)
-          line(nodes[index[0]].posX*width, nodes[index[0]].posY*height, nodes[index[1]].posX*width, nodes[index[1]].posY*height);
+      function (edgeWeight, edgeNodesIds, matrix) {
+        if (edgeWeight != 0) {
+          stroke(color(0, 0, 0, 255*edgeWeight));
+          strokeWeight(nodeRadius*edgeWeight*0.75)
+          line(nodes.get([edgeNodesIds[0], 0])*width,
+               nodes.get([edgeNodesIds[0], 1])*height,
+               nodes.get([edgeNodesIds[1], 0])*width,
+               nodes.get([edgeNodesIds[1], 1])*height);
         }
       }
     );
