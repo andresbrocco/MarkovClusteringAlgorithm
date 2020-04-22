@@ -13,7 +13,7 @@ let animationSpeedValue = 1;
 let animationRunning = false;
 let nodeToNodeRepulsionFactor = 1;
 let nodeToNodeAttractionFactor = 1;
-let nodeToCenterAttractionFactor = 1;
+let nodeToCenterAttractionFactor = 0;
 let dampingFactor = 0.1;
 let nodesVelocity = math.matrix();
 let randomForce = math.matrix();
@@ -83,26 +83,12 @@ function draw() {
   background(color('hsl(180, 37%, 79%)'));
   drawNodes();
   drawEdges();
-  // counter++;
-  // if(counter == 100){
-  //   console.log(frameRate());
-  //   console.log("number of nodes: "+nodes.size()[0]);
-  //   counter = 0;
-  // }
 };
 
 function relaxGraph(){
   if(nodes.size()[0] > 1 && !isMovingNode){ // Need more than 1 node to relax and cant be moving a node
-    if(frameCount%10 === 0){ // If frameRate is low, skip calculation and use previous velocities
+    if(frameCount%10 === 0){ // Skip some calculations to save processor
       // Calculate Forces:
-      let farthestNodeDistToCenter = math.max(math.abs(math.subtract(nodes, 0.5)));
-      nodeToCenterAttractionFactor += math.pow((farthestNodeDistToCenter-0.4), 3)*20;
-      // if(math.min(nodes) < 0.1 || math.max(nodes) > 0.9){ // If a node is outside the canvas
-      //   nodeToCenterAttractionFactor = nodeToCenterAttractionFactor*1.02;
-      // } else if (math.max(math.abs(math.subtract(nodes, 0.5))) < 0.25){ // If the nodes are all concentrated in the canvas center
-      //   nodeToCenterAttractionFactor = nodeToCenterAttractionFactor*0.98;
-      // }
-      let colAverage = nodes.colAverage();
       let deltaPosX = math.subtract(math.row(math.transpose(nodes), 0).broadcast(), math.column(nodes, 0).broadcast());
       let deltaPosY = math.subtract(math.row(math.transpose(nodes), 1).broadcast(), math.column(nodes, 1).broadcast());
       let deltaPosNorm = math.add(math.sqrt(math.add(math.square(deltaPosX), math.square(deltaPosY))), 0.00001);//Avoid division by zero
@@ -110,18 +96,19 @@ function relaxGraph(){
       let nodeToNodeRepulsionForceX = math.dotMultiply(nodeToNodeRepulsionForceNorm, math.dotDivide(deltaPosX, deltaPosNorm)).rowSum();
       let nodeToNodeRepulsionForceY = math.dotMultiply(nodeToNodeRepulsionForceNorm, math.dotDivide(deltaPosY, deltaPosNorm)).rowSum();
       let nodeToNodeRepulsionForce = math.dotMultiply(math.concat(nodeToNodeRepulsionForceX, nodeToNodeRepulsionForceY), -nodeToNodeRepulsionFactor);
-      // console.log("nodeToNodeRepulsionForce: "+nodeToNodeRepulsionForce);
       let nodeToNodeAttractionForceX = math.dotMultiply(edges, deltaPosX).rowSum();
       let nodeToNodeAttractionForceY = math.dotMultiply(edges, deltaPosY).rowSum();
       let nodeToNodeAttractionForce = math.dotMultiply(math.concat(nodeToNodeAttractionForceX, nodeToNodeAttractionForceY), nodeToNodeAttractionFactor);
-      // console.log("nodeToNodeAttractionForce: "+nodeToNodeAttractionForce);
-      let nodeToCanvasCenterAttractionForce = math.dotMultiply(math.subtract(0.5, nodes), nodeToCenterAttractionFactor);
-      // Random force to insert some entropy:
-      if(frameCount%100 === 0) randomForce = math.random(nodes.size(), -0.2, 0.2); // Put some entropy
-      let randomForce_ = math.dotMultiply(randomForce, math.sin(math.pi*(frameCount%100)/99));
+      let colAverage = nodes.colAverage();
+      let farthestNodeDistToCenter = math.max(math.abs(math.subtract(nodes, 0.5)));
+      nodeToCenterAttractionFactor += (farthestNodeDistToCenter-0.3);
+      let distFromNodesToCanvasCenter = math.subtract(0.5, nodes);
+      let nodeToCanvasCenterAttractionForce = math.dotMultiply(distFromNodesToCanvasCenter, nodeToCenterAttractionFactor);
+      if(frameCount%300 === 0 || !_.isEqual(randomForce.size(), nodes.size())) randomForce = math.matrix(math.random(nodes.size(), -0.15, 0.15)); // Put some entropy to keep graph floating
+      let randomForceSmoothed = math.dotMultiply(randomForce, math.sin(math.pi*(frameCount%300)/299));
       // Calculate accelerations:
       let nodesMasses = 50;
-      let nodesAccelerations = math.dotDivide(math.add(nodeToNodeRepulsionForce, nodeToNodeAttractionForce, nodeToCanvasCenterAttractionForce, randomForce_), nodesMasses);
+      let nodesAccelerations = math.dotDivide(math.add(nodeToNodeRepulsionForce, nodeToNodeAttractionForce, nodeToCanvasCenterAttractionForce, randomForceSmoothed), nodesMasses);
       // Update Velocities
       nodesVelocity = math.dotMultiply(math.add(nodesVelocity, nodesAccelerations), dampingFactor);
     }
@@ -224,7 +211,7 @@ function getNodeId(mouseX, mouseY) {
 function createNode(mouseX, mouseY) {
   nodes.subset(math.index(nodes.size()[0], [0, 1]), [mouseX/width, mouseY/height]);
   nodesVelocity.subset(math.index(nodesVelocity.size()[0], [0, 1]), [0, 0]);
-  randomForce = math.resize(randomForce, [nodes.size()[0], 2], 0);
+  randomForce = math.resize(randomForce, [randomForce.size()[0]+1, 2], 0);
   edges = math.resize(edges, [nodes.size()[0], nodes.size()[0]], 0);
 }
 
