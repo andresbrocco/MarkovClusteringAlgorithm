@@ -2,6 +2,11 @@ html {
   overflow: hidden;
 }
 
+.relaxIcon {
+  height: 1rem;
+  filter:invert(100%);
+}
+
 #sketch-holder {
   height: 100vh;
 }

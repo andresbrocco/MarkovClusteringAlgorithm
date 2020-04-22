@@ -6,17 +6,21 @@ let isMakingNewEdge = false;
 let isMovingNode = false;
 let isDeletingNode = false;
 let edges = math.matrix([0]);
-let graphDirection = 'undirectedGraph';
+let clusteredEdges;
+let clusteringBegan = false;
+let graphDirection = 'undirected';
+let graphMovement = 'fixed';
 let inflationValue = 2;
 let pruneTresholdValue = 1;
 let animationSpeedValue = 1;
-let animationRunning = false;
-let nodeToNodeRepulsionFactor = 1;
+let clusteringRunning = false;
+let nodeToNodeRepulsionFactor = 0.3;
 let nodeToNodeAttractionFactor = 1;
 let nodeToCenterAttractionFactor = 0;
 let dampingFactor = 0.1;
 let nodesVelocity = math.matrix();
 let randomForce = math.matrix();
+let clusteringConverged = false;
 
 math.DenseMatrix.prototype.broadcast = function () {
   let broadcasted;
@@ -74,12 +78,11 @@ function setup() {
   var canvas = createCanvas(parseFloat(select('#sketch-holder').style('width')), parseFloat( select('#sketch-holder').style('height')));
   canvas.parent('sketch-holder');
   frameRate(40);
-  // let dumb = math.matrix([[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]]);
 };
 
-let counter = 0;
 function draw() {
-  if(animationRunning) relaxGraph();
+  if(graphMovement === 'relaxed') relaxGraph();
+  if(clusteringRunning && !clusteringConverged && frameCount%20 === 0) stepClustering();
   background(color('hsl(180, 37%, 79%)'));
   drawNodes();
   drawEdges();
@@ -122,38 +125,42 @@ function windowResized() {
 };
 
 function mousePressed() {
-  if (mouseIsOnCanvas()){
-    pressedNodeId = getNodeId(mouseX, mouseY);
-    if (keyIsDown(77)) { // 77: keyCode for "m"
-      isMovingNode = true;
-    } else if (keyIsDown(68)) { // 68: keycode for "d"
-      isDeletingNode = true;
-    } else { // No key pressed
-      isMakingNewEdge = true;
+  if(!clusteringBegan){
+    if (mouseIsOnCanvas()){
+      pressedNodeId = getNodeId(mouseX, mouseY);
+      if (keyIsDown(77)) { // 77: keyCode for "m"
+        isMovingNode = true;
+      } else if (keyIsDown(68)) { // 68: keycode for "d"
+        isDeletingNode = true;
+      } else { // No key pressed
+        isMakingNewEdge = true;
+      }
     }
   }
 }
 
 function mouseReleased() {
-  if (mouseIsOnCanvas()) {
-    releasedNodeId = getNodeId(mouseX, mouseY);
-    if (pressedNodeId != releasedNodeId) { // CHANGE THIS WHEN DIRECTED/UNDIRECTED IS IMPLEMENTED!
-      edges.set([pressedNodeId, releasedNodeId], 1);
-      edges.set([releasedNodeId, pressedNodeId], 1);
+  if(!clusteringBegan){
+    if (mouseIsOnCanvas()) {
+      releasedNodeId = getNodeId(mouseX, mouseY);
+      if (pressedNodeId != releasedNodeId) { // CHANGE THIS WHEN DIRECTED/UNDIRECTED IS IMPLEMENTED!
+        edges.set([pressedNodeId, releasedNodeId], 1);
+        edges.set([releasedNodeId, pressedNodeId], 1);
 
-    } else if (isDeletingNode) {
-      deleteNode(pressedNodeId);
+      } else if (isDeletingNode) {
+        deleteNode(pressedNodeId);
+      }
     }
+    pressedNodeId = [];
+    releasedNodeId = [];
+    isMovingNode = false;
+    isMakingNewEdge = false;
+    isDeletingNode = false;
   }
-  pressedNodeId = [];
-  releasedNodeId = [];
-  isMovingNode = false;
-  isMakingNewEdge = false;
-  isDeletingNode = false;
 }
 
 function mouseDragged() {
-  if (mouseIsOnCanvas()) {
+  if (mouseIsOnCanvas() && !clusteringBegan) {
     if (isMovingNode) {
       nodes.set([pressedNodeId, 0], mouseX/width);
       nodes.set([pressedNodeId, 1], mouseY/height);
@@ -162,17 +169,19 @@ function mouseDragged() {
 }
 
 function mouseWheel(event) {
-  let weightFactor = 1;
-  if(event.delta < 0) { weightFactor = 1.05;
-  } else {              weightFactor = 0.95;
-  }
-  if(nodes.size()[0] > 1){ // More than 1 node
-    let edgesUnderCursor = getEdgesUnderCursor(mouseX, mouseY);
-    if (edgesUnderCursor != []) { // If cursor is over an edge
-      for (var edge = 0; edge < edgesUnderCursor.length; edge++) {
-        let newEdgeWeight = constrain(edges.get(edgesUnderCursor[edge])*weightFactor, 0.1, 1);
-        if (newEdgeWeight == 0.1) newEdgeWeight = 0;
-        edges.set(edgesUnderCursor[edge], newEdgeWeight);
+  if (!clusteringBegan) {
+    let weightFactor = 1;
+    if(event.delta < 0) { weightFactor = 1.05;
+    } else {              weightFactor = 0.95;
+    }
+    if(nodes.size()[0] > 1){ // More than 1 node
+      let edgesUnderCursor = getEdgesUnderCursor(mouseX, mouseY);
+      if (edgesUnderCursor != []) { // If cursor is over an edge
+        for (var edge = 0; edge < edgesUnderCursor.length; edge++) {
+          let newEdgeWeight = constrain(edges.get(edgesUnderCursor[edge])*weightFactor, 0.1, 1);
+          if (newEdgeWeight == 0.1) newEdgeWeight = 0;
+          edges.set(edgesUnderCursor[edge], newEdgeWeight);
+        }
       }
     }
   }
@@ -263,7 +272,7 @@ function drawEdges() {
   // Draw edge that is being connected:
   if(isMakingNewEdge){
     if (dist(nodes.get([pressedNodeId, 0])*width, nodes.get([pressedNodeId, 1])*height, mouseX, mouseY) > 2*nodeRadius) {
-      stroke(color(0, 0, 0, 255));
+      stroke(color(50, 50, 50, 200));
       strokeWeight(nodeRadius*0.75)
       line(nodes.get([pressedNodeId, 0])*width, nodes.get([pressedNodeId, 1])*height, mouseX, mouseY);
     }
@@ -273,7 +282,22 @@ function drawEdges() {
     edges.forEach(
       function (edgeWeight, edgeNodesIds, matrix) {
         if (edgeWeight != 0) {
-          stroke(color(0, 0, 0, 255*edgeWeight));
+          stroke(color(50, 50, 50, 128*edgeWeight));
+          strokeWeight(nodeRadius*edgeWeight*0.75)
+          line(nodes.get([edgeNodesIds[0], 0])*width,
+               nodes.get([edgeNodesIds[0], 1])*height,
+               nodes.get([edgeNodesIds[1], 0])*width,
+               nodes.get([edgeNodesIds[1], 1])*height);
+        }
+      }
+    );
+  }
+  // Draw clusteredEdges:
+  if(clusteringBegan) {
+    clusteredEdges.forEach(
+      function (edgeWeight, edgeNodesIds, matrix) {
+        if (edgeWeight != 0) {
+          stroke(color(255, 0, 0, 128*edgeWeight));
           strokeWeight(nodeRadius*edgeWeight*0.75)
           line(nodes.get([edgeNodesIds[0], 0])*width,
                nodes.get([edgeNodesIds[0], 1])*height,
@@ -309,13 +333,43 @@ function setGraphDirection(value) {
   graphDirection = value;
 }
 
+function setGraphMovement(value) {
+  graphMovement = value;
+}
 function playPauseAnimation() {
-  animationRunning = !animationRunning;
-  if (animationRunning) {
+  if(!clusteringBegan) {
+    beginClustering();
+  }
+  clusteringRunning = !clusteringRunning;
+  if (clusteringRunning) {
     $('#playPauseButton').html('<i class="fa fa-pause"></i>');
   } else {
     $('#playPauseButton').html('<i class="fa fa-play"></i>');
   }
+}
+
+function beginClustering() {
+  clusteredEdges = math.add(edges, math.identity(edges.size()[0]));
+  clusteredEdges = math.dotDivide(clusteredEdges, clusteredEdges.colSum().broadcast()) ; // Renormalize
+  clusteringBegan = true;
+}
+
+function stepClustering() {
+  let newClusteredEdges = clusteredEdges;
+  newClusteredEdges = math.multiply(newClusteredEdges, newClusteredEdges); // Segregate
+  newClusteredEdges = math.dotPow(newClusteredEdges, inflationValue); // Inflate
+  newClusteredEdges = math.dotDivide(newClusteredEdges, newClusteredEdges.colSum().broadcast()) ; // Renormalize
+  let pruneTreshold = pruneTresholdValue/newClusteredEdges.size()[0];
+  console.log("pruneTreshold: "+pruneTreshold);
+  newClusteredEdges = math.map(newClusteredEdges, function(value){ // Prune
+    if(value < pruneTreshold) return 0; else return value;
+  });
+  if(math.deepEqual(newClusteredEdges, clusteredEdges)) {
+    clusteringConverged = true;
+    console.log("clustering converged:");
+    logMatrix(newClusteredEdges);
+  }
+  clusteredEdges = newClusteredEdges;
 }
 
 function distToEdge(px, py, e1x, e1y, e2x, e2y) {
@@ -324,4 +378,10 @@ function distToEdge(px, py, e1x, e1y, e2x, e2y) {
   var t = ((px - e1x) * (e2x - e1x) + (py - e1y) * (e2y - e1y))/edgeLengthSquared;
   t = constrain(t, 0, 1);
   return dist(px, py, e1x + t*(e2x - e1x), e1y + t*(e2y - e1y));
+}
+
+function logMatrix(matrix) {
+  for (var row = 0; row < matrix.size()[0]; row++) {
+    console.log("row "+row+": "+math.row(matrix, row));
+  }
 }

@@ -44,10 +44,18 @@
           <div class="text-center">
             <div class="btn-group btn-group-toggle m-1 shadow-sm" data-toggle="buttons">
               <label class="btn btn-sm btn-primary active">
-                <input type="radio" name="graphDirection" id="undirectedGraph" autocomplete="off" checked onclick="setGraphDirection('undirectedGraph');"> Undirected <i class="fa fa-arrows-h"></i>
+                <input type="radio" name="graphDirection" id="undirectedGraph" autocomplete="off" checked onclick="setGraphDirection('undirected');"> Undirected <i class="fa fa-arrows-h"></i>
               </label>
               <label class="btn btn-sm btn-primary">
-                <input type="radio" name="graphDirection" id="directedGraph" autocomplete="off" onclick="setGraphDirection('directedGraph');"> Directed <i class="fa fa-exchange"></i>
+                <input type="radio" name="graphDirection" id="directedGraph" autocomplete="off" onclick="setGraphDirection('directed');"> Directed <i class="fa fa-exchange"></i>
+              </label>
+            </div>
+            <div class="btn-group btn-group-toggle m-1 shadow-sm" data-toggle="buttons">
+              <label class="btn btn-sm btn-primary active">
+                <input type="radio" name="graphMovement" id="fixedGraph" autocomplete="off" checked onclick="setGraphMovement('fixed');"> Fixed <i class="fa fa-thumb-tack "></i>
+              </label>
+              <label class="btn btn-sm btn-primary">
+                <input type="radio" name="graphMovement" id="relaxedGraph" autocomplete="off" onclick="setGraphMovement('relaxed');"> Relaxed <img src="./images/relaxIcon.png" class="relaxIcon"/>
               </label>
             </div>
           </div>
