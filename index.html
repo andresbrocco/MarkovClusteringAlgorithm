@@ -81,18 +81,18 @@
           </div>
         </div>
         <div>
-          <label for="animationSpeedValue" class="">Animation speed:</label><span class="animationSpeedSpan ml-2">1</span>
+          <label for="clusterizationSpeedValue" class="">Clusterization speed:</label><span class="clusterizationSpeedSpan ml-2">1</span>
           <div class="d-flex justify-content-center">
             <span class="mr-2">0.2</span>
             <form class="range-field">
-              <input id="animationSpeedValue" class="custom-range" type="range" min="0.2" step="0.1" max="4" />
+              <input id="clusterizationSpeedValue" class="custom-range" type="range" min="0.2" step="0.1" max="4" />
             </form>
             <span class="ml-2">4</span>
           </div>
         </div>
         <div class="d-flex justify-content-around">
-          <button type="button" class="btn btn-primary"><i class="fa fa-undo"></i></button>
-          <button type="button" class="btn btn-primary" id="playPauseButton" onclick="playPauseAnimation();"><i class="fa fa-play"></i></button>
+          <button type="button" class="btn btn-primary" id="resetButton" onclick="resetClusterization();"><i class="fa fa-undo"></i></button>
+          <button type="button" class="btn btn-primary" id="playPauseButton" onclick="playPauseClusterization();"><i class="fa fa-play"></i></button>
           <button type="button" class="btn btn-primary"><i class="fa fa-step-forward"></i></button>
           <button type="button" class="btn btn-dark text-danger rounded-circle"><i class="fa fa-circle"></i></button>
         </div>

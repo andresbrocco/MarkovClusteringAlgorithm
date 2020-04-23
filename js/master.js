@@ -11,10 +11,10 @@ $(document).ready(
     $pruneTresholdSpan.html($pruneTresholdValue.val());
     $pruneTresholdValue.on('input change', () => { $pruneTresholdSpan.html($pruneTresholdValue.val()); setPruneTresholdValue($pruneTresholdValue.val())});
 
-    const $animationSpeedSpan = $('.animationSpeedSpan');
-    const $animationSpeedValue = $('#animationSpeedValue');
-    $animationSpeedSpan.html($animationSpeedValue.val());
-    $animationSpeedValue.on('input change', () => { $animationSpeedSpan.html($animationSpeedValue.val()); setAnimationSpeed($animationSpeedValue.val())});
+    const $clusterizationSpeedSpan = $('.clusterizationSpeedSpan');
+    const $clusterizationSpeedValue = $('#clusterizationSpeedValue');
+    $clusterizationSpeedSpan.html($clusterizationSpeedValue.val());
+    $clusterizationSpeedValue.on('input change', () => { $clusterizationSpeedSpan.html($clusterizationSpeedValue.val()); setClusterizationSpeed($clusterizationSpeedValue.val())});
 
   }
 

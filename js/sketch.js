@@ -12,7 +12,7 @@ let graphDirection = 'undirected';
 let graphMovement = 'fixed';
 let inflationValue = 2;
 let pruneTresholdValue = 1;
-let animationSpeedValue = 1;
+let clusterizationSpeedValue = 1;
 let clusteringRunning = false;
 let nodeToNodeRepulsionFactor = 0.9;
 let nodeToNodeAttractionFactor = 1;
@@ -331,8 +331,8 @@ function setPruneTresholdValue(value) {
   pruneTresholdValue = value;
 }
 
-function setAnimationSpeed(value) {
-  animationSpeedValue = value;
+function setClusterizationSpeed(value) {
+  clusterizationSpeedValue = value;
 }
 
 function setGraphDirection(value) {
@@ -342,16 +342,21 @@ function setGraphDirection(value) {
 function setGraphMovement(value) {
   graphMovement = value;
 }
-function playPauseAnimation() {
+
+function resetClusterization() {
+  clusteredEdges = [];
+  clusteringBegan = false;
+  clusteringRunning = false;
+  clusteringConverged = false;
+  updatePlayPauseButton();
+}
+
+function playPauseClusterization() {
   if(!clusteringBegan) {
     beginClustering();
   }
   clusteringRunning = !clusteringRunning;
-  if (clusteringRunning) {
-    $('#playPauseButton').html('<i class="fa fa-pause"></i>');
-  } else {
-    $('#playPauseButton').html('<i class="fa fa-play"></i>');
-  }
+  updatePlayPauseButton();
 }
 
 function beginClustering() {
@@ -372,6 +377,8 @@ function stepClustering() {
   });
   if(math.deepEqual(newClusteredEdges, clusteredEdges)) {
     clusteringConverged = true;
+    clusteringRunning = false;
+    updatePlayPauseButton();
     console.log("clustering converged:");
     logMatrix(newClusteredEdges);
   }
@@ -389,5 +396,13 @@ function distToEdge(px, py, e1x, e1y, e2x, e2y) {
 function logMatrix(matrix) {
   for (var row = 0; row < matrix.size()[0]; row++) {
     console.log("row "+row+": "+math.row(matrix, row));
+  }
+}
+
+function updatePlayPauseButton(){
+  if (clusteringRunning) {
+    $('#playPauseButton').html('<i class="fa fa-pause"></i>');
+  } else {
+    $('#playPauseButton').html('<i class="fa fa-play"></i>');
   }
 }
