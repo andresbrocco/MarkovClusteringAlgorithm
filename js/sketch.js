@@ -14,9 +14,10 @@ let inflationValue = 2;
 let pruneTresholdValue = 1;
 let animationSpeedValue = 1;
 let clusteringRunning = false;
-let nodeToNodeRepulsionFactor = 0.3;
+let nodeToNodeRepulsionFactor = 0.9;
 let nodeToNodeAttractionFactor = 1;
-let nodeToCenterAttractionFactor = 0;
+let nodeToCenterAttractionFactorX = 0;
+let nodeToCenterAttractionFactorY = 0;
 let dampingFactor = 0.1;
 let nodesVelocity = math.matrix();
 let randomForce = math.matrix();
@@ -82,7 +83,7 @@ function setup() {
 
 function draw() {
   if(graphMovement === 'relaxed') relaxGraph();
-  if(clusteringRunning && !clusteringConverged && frameCount%20 === 0) stepClustering();
+  if(clusteringRunning && !clusteringConverged && frameCount%10 === 0) stepClustering();
   background(color('hsl(180, 37%, 79%)'));
   drawNodes();
   drawEdges();
@@ -95,18 +96,23 @@ function relaxGraph(){
       let deltaPosX = math.subtract(math.row(math.transpose(nodes), 0).broadcast(), math.column(nodes, 0).broadcast());
       let deltaPosY = math.subtract(math.row(math.transpose(nodes), 1).broadcast(), math.column(nodes, 1).broadcast());
       let deltaPosNorm = math.add(math.sqrt(math.add(math.square(deltaPosX), math.square(deltaPosY))), 0.00001);//Avoid division by zero
-      let nodeToNodeRepulsionForceNorm = math.dotMultiply(nodeToNodeRepulsionFactor, math.exp(math.dotMultiply(-3, deltaPosNorm)));
+      let nodeToNodeRepulsionForceNorm = math.dotMultiply(-nodeToNodeRepulsionFactor, math.subtract(1, deltaPosNorm));
       let nodeToNodeRepulsionForceX = math.dotMultiply(nodeToNodeRepulsionForceNorm, math.dotDivide(deltaPosX, deltaPosNorm)).rowSum();
       let nodeToNodeRepulsionForceY = math.dotMultiply(nodeToNodeRepulsionForceNorm, math.dotDivide(deltaPosY, deltaPosNorm)).rowSum();
-      let nodeToNodeRepulsionForce = math.dotMultiply(math.concat(nodeToNodeRepulsionForceX, nodeToNodeRepulsionForceY), -nodeToNodeRepulsionFactor);
+      let nodeToNodeRepulsionForce = math.concat(nodeToNodeRepulsionForceX, nodeToNodeRepulsionForceY);
       let nodeToNodeAttractionForceX = math.dotMultiply(edges, deltaPosX).rowSum();
       let nodeToNodeAttractionForceY = math.dotMultiply(edges, deltaPosY).rowSum();
       let nodeToNodeAttractionForce = math.dotMultiply(math.concat(nodeToNodeAttractionForceX, nodeToNodeAttractionForceY), nodeToNodeAttractionFactor);
       let colAverage = nodes.colAverage();
-      let farthestNodeDistToCenter = math.max(math.abs(math.subtract(nodes, 0.5)));
-      nodeToCenterAttractionFactor += (farthestNodeDistToCenter-0.3);
+      let farthestNodeDistToCenterX = math.max(math.abs(math.subtract(math.column(nodes, 0), 0.5)));
+      let farthestNodeDistToCenterY = math.max(math.abs(math.subtract(math.column(nodes, 1), 0.5)));
+
+      nodeToCenterAttractionFactorX = math.max(0, nodeToCenterAttractionFactorX +farthestNodeDistToCenterX-0.35);
+      nodeToCenterAttractionFactorY = math.max(0, nodeToCenterAttractionFactorY +farthestNodeDistToCenterY-0.35);
       let distFromNodesToCanvasCenter = math.subtract(0.5, nodes);
-      let nodeToCanvasCenterAttractionForce = math.dotMultiply(distFromNodesToCanvasCenter, nodeToCenterAttractionFactor);
+      let nodeToCanvasCenterAttractionForceX = math.dotMultiply(math.column(distFromNodesToCanvasCenter, 0), nodeToCenterAttractionFactorX);
+      let nodeToCanvasCenterAttractionForceY = math.dotMultiply(math.column(distFromNodesToCanvasCenter, 1), nodeToCenterAttractionFactorY);
+      let nodeToCanvasCenterAttractionForce = math.concat(nodeToCanvasCenterAttractionForceX, nodeToCanvasCenterAttractionForceY);
       if(frameCount%300 === 0 || !_.isEqual(randomForce.size(), nodes.size())) randomForce = math.matrix(math.random(nodes.size(), -0.15, 0.15)); // Put some entropy to keep graph floating
       let randomForceSmoothed = math.dotMultiply(randomForce, math.sin(math.pi*(frameCount%300)/299));
       // Calculate accelerations:
