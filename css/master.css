@@ -19,3 +19,18 @@ label,
 h3 {
   text-shadow: 1px 1px 6px hsla(228, 26%, 59%, 0.67);
 }
+
+.btn-light:focus {
+  box-shadow: none;
+}
+
+#recButton {
+  font-size: 2.5rem;
+  background-color: rgba(201, 159, 40, 0);
+  border: none;
+  padding: 0 0;
+}
+
+#recButtonIcon {
+  color: rgb(2, 97, 197);
+}

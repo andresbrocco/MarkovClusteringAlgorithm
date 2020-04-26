@@ -21,7 +21,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/6.6.4/math.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore.js"></script>
 
-    </script>
+
+    <!-- CCapture to record animation -->
+    <!-- <script src="CCapture.all.min.js"></script> -->
+    <script src="./js/ccapture/CCapture.js"></script>
+    <script src="./js/ccapture/webm-writer-0.2.0.js"></script>
+    <script src="./js/ccapture/gif.js"></script>
+    <script src="./js/ccapture/gif.worker.js"></script>
+    <script src="./js/ccapture/download.js"></script>
 
     <!-- p5 -->
     <script src="./js/p5.js"></script>
@@ -29,6 +36,7 @@
 
     <!-- Javascript -->
     <script src="./js/master.js"></script>
+
     <title>Markov Clustering Algorithm</title>
   </head>
 
@@ -91,10 +99,10 @@
           </div>
         </div>
         <div class="d-flex justify-content-around">
-          <button type="button" class="btn btn-primary" id="resetButton" onclick="resetClusterization();"><i class="fa fa-undo"></i></button>
-          <button type="button" class="btn btn-primary" id="playPauseButton" onclick="playPauseClusterization();"><i class="fa fa-play"></i></button>
-          <button type="button" class="btn btn-primary"><i class="fa fa-step-forward"></i></button>
-          <button type="button" class="btn btn-dark text-danger rounded-circle"><i class="fa fa-circle"></i></button>
+          <button type="button" class="btn btn-primary mt-2" style="height:70%;" id="resetButton" onclick="resetClusterization();"><i class="fa fa-undo"></i></button>
+          <button type="button" class="btn btn-primary mt-2" style="height:70%;" id="playPauseButton" onclick="playPauseClusterization();"><i class="fa fa-play"></i></button>
+          <button type="button" class="btn btn-primary mt-2" style="height:70%;"><i class="fa fa-step-forward"></i></button>
+          <button type="button" class="btn btn-light" id="recButton" onclick="record()"><i class="fa fa-file-video-o" id="recButtonIcon"></i></button>
         </div>
       </div>
     </div>

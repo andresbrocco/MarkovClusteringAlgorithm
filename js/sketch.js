@@ -22,6 +22,9 @@ let dampingFactor = 0.1;
 let nodesVelocity = math.matrix();
 let randomForce = math.matrix();
 let clusteringConverged = false;
+let clusterIterationNumber = 0;
+let isRecording = false;
+let capturer;
 
 math.DenseMatrix.prototype.broadcast = function () {
   let broadcasted;
@@ -79,14 +82,17 @@ function setup() {
   var canvas = createCanvas(parseFloat(select('#sketch-holder').style('width')), parseFloat( select('#sketch-holder').style('height')));
   canvas.parent('sketch-holder');
   frameRate(40);
+  capturer = new CCapture( { format: 'gif', workersPath: './js/ccapture/', framerate: 30} );
 };
 
 function draw() {
   if(graphMovement === 'relaxed') relaxGraph();
-  if(clusteringRunning && !clusteringConverged && frameCount%10 === 0) stepClustering();
+  if(clusteringRunning && !clusteringConverged && frameCount%math.round(10/clusterizationSpeedValue) === 0) stepClustering();
   background(color('hsl(180, 37%, 79%)'));
   drawNodes();
   drawEdges();
+  writeInfoOnCanvas();
+  capturer.capture(document.getElementById('defaultCanvas0'));
 };
 
 function relaxGraph(){
@@ -266,11 +272,24 @@ function deleteNode(nodeId) {
 }
 
 function drawNodes() {
+  // Draw every node:
   for (var nodeId = 0; nodeId < nodes.size()[0]; nodeId++) {
     fill(color(0, 0, 0, 255));
     stroke(color(0, 0, 0, 255));
     strokeWeight(1)
     circle(nodes.get([nodeId, 0])*width, nodes.get([nodeId, 1])*height, 2*nodeRadius);
+  }
+  // Draw cluster centers:
+  if(clusteringBegan) {
+    fill(color(255, 0, 0));
+    stroke(color(255, 0, 0));
+    strokeWeight(1);
+    clusteredEdges.rowSum().forEach(
+      function (value, index, matrix) {
+        if(value > 0) {
+          circle(nodes.get([index[0], 0])*width, nodes.get([index[0], 1])*height, 2*nodeRadius);
+        }
+      })
   }
 }
 
@@ -343,11 +362,32 @@ function setGraphMovement(value) {
   graphMovement = value;
 }
 
+function record() {
+  if(isRecording) {
+    console.log("stopping capturer:");
+    isRecording = false;
+    capturer.stop();
+    capturer.save();
+  } else {
+    console.log("starting capturer:");
+    try {
+      capturer.start();
+      console.log("capturer started!")
+    } catch (e) {
+      console.log("error in capturer.start(): "+e);
+    } finally {
+      isRecording = true;
+    }
+  }
+  updateRecButton();
+}
+
 function resetClusterization() {
   clusteredEdges = [];
   clusteringBegan = false;
   clusteringRunning = false;
   clusteringConverged = false;
+  clusterIterationNumber = 0;
   updatePlayPauseButton();
 }
 
@@ -363,6 +403,7 @@ function beginClustering() {
   clusteredEdges = math.add(edges, math.identity(edges.size()[0]));
   clusteredEdges = math.dotDivide(clusteredEdges, clusteredEdges.colSum().broadcast()) ; // Renormalize
   clusteringBegan = true;
+  clusterIterationNumber = 0;
 }
 
 function stepClustering() {
@@ -383,6 +424,7 @@ function stepClustering() {
     logMatrix(newClusteredEdges);
   }
   clusteredEdges = newClusteredEdges;
+  clusterIterationNumber++;
 }
 
 function distToEdge(px, py, e1x, e1y, e2x, e2y) {
@@ -405,4 +447,26 @@ function updatePlayPauseButton(){
   } else {
     $('#playPauseButton').html('<i class="fa fa-play"></i>');
   }
+}
+
+function updateRecButton(){
+  if (isRecording) {
+    document.getElementById("recButtonIcon").style.color = "red";
+
+    // $('#recButton').style.color = "red";
+  } else {
+    // $('#recButton').style.color = "rgb(2, 97, 197)";
+    document.getElementById("recButtonIcon").style.color = "rgb(2, 97, 197)";
+  }
+}
+
+function writeInfoOnCanvas() {
+  noStroke();
+  fill(color(0, 0, 0));
+  text('Clustering iteration number: '+clusterIterationNumber+' '+
+        (clusteringConverged ? '(converged!)':'')+'\n'+
+       // 'Graph direction: '+graphDirection+'\n'+
+       'Prune treshold: '+pruneTresholdValue+'\n'+
+       'Inflation: '+inflationValue,
+       0.03*width, 0.03*height);
 }
