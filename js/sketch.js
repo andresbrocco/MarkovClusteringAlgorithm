@@ -81,8 +81,8 @@ math.DenseMatrix.prototype.colAverage = function() {
 function setup() {
   var canvas = createCanvas(parseFloat(select('#sketch-holder').style('width')), parseFloat( select('#sketch-holder').style('height')));
   canvas.parent('sketch-holder');
-  frameRate(40);
-  capturer = new CCapture( { format: 'gif', workersPath: './js/ccapture/', framerate: 15} );
+  frameRate(30);
+  capturer = new CCapture( { format: 'gif', workersPath: './js/ccapture/', framerate: 30} );
   pruneTresholdValue = document.getElementById("pruneTresholdValue").value;
   inflationValue = document.getElementById("inflationValue").value;
 };
@@ -124,7 +124,7 @@ function relaxGraph(){
       if(frameCount%300 === 0 || !_.isEqual(randomForce.size(), nodes.size())) randomForce = math.matrix(math.random(nodes.size(), -0.15, 0.15)); // Put some entropy to keep graph floating
       let randomForceSmoothed = math.dotMultiply(randomForce, math.sin(math.pi*(frameCount%300)/299));
       // Calculate accelerations:
-      let nodesMasses = 50;
+      let nodesMasses = 20;
       let nodesAccelerations = math.dotDivide(math.add(nodeToNodeRepulsionForce, nodeToNodeAttractionForce, nodeToCanvasCenterAttractionForce, randomForceSmoothed), nodesMasses);
       // Update Velocities
       nodesVelocity = math.dotMultiply(math.add(nodesVelocity, nodesAccelerations), dampingFactor);
@@ -155,7 +155,7 @@ function mousePressed() {
 
 function mouseReleased() {
   if(!clusteringBegan && !waitingForDownload){
-    if (mouseIsOnCanvas()) {
+    if (mouseIsOnCanvas() && isMakingNewEdge) {
       releasedNodeId = getNodeId(mouseX, mouseY);
       if (pressedNodeId != releasedNodeId) { // CHANGE THIS WHEN DIRECTED/UNDIRECTED IS IMPLEMENTED!
         edges.set([pressedNodeId, releasedNodeId], 1);
@@ -370,9 +370,9 @@ function record() {
       unBlockUser();
       return false;
     });
-    // capturer.save();
   } else {
     try {
+      capturer = new CCapture( { format: 'gif', workersPath: './js/ccapture/', framerate: 30} );
       capturer.start();
     } catch (e) {
       console.log("error in capturer.start(): "+e);
@@ -460,12 +460,14 @@ function updateRecButton(){
 }
 
 function blockUser() {
-  $("#blockUserOverlay").show();
+  document.getElementById("blockUserOverlay").classList.add("showBlockUserOverlay");
+  document.getElementById("blockUserOverlay").classList.remove("hideBlockUserOverlay");
   waitingForDownload = true;
 }
 
 function unBlockUser() {
-  $("#blockUserOverlay").hide();
+  document.getElementById("blockUserOverlay").classList.add("hideBlockUserOverlay");
+  document.getElementById("blockUserOverlay").classList.remove("showBlockUserOverlay");
   waitingForDownload = false;
 }
 
