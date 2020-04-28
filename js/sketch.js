@@ -8,7 +8,6 @@ let isDeletingNode = false;
 let edges = math.matrix([0]);
 let clusteredEdges;
 let clusteringBegan = false;
-let graphDirection = 'undirected';
 let graphMovement = 'fixed';
 let inflationValue = 2;
 let pruneTresholdValue = 1;
@@ -25,6 +24,7 @@ let clusteringConverged = false;
 let clusterIterationNumber = 0;
 let isRecording = false;
 let capturer;
+let waitingForDownload = false;
 
 math.DenseMatrix.prototype.broadcast = function () {
   let broadcasted;
@@ -82,7 +82,9 @@ function setup() {
   var canvas = createCanvas(parseFloat(select('#sketch-holder').style('width')), parseFloat( select('#sketch-holder').style('height')));
   canvas.parent('sketch-holder');
   frameRate(40);
-  capturer = new CCapture( { format: 'gif', workersPath: './js/ccapture/', framerate: 30} );
+  capturer = new CCapture( { format: 'gif', workersPath: './js/ccapture/', framerate: 15} );
+  pruneTresholdValue = document.getElementById("pruneTresholdValue").value;
+  inflationValue = document.getElementById("inflationValue").value;
 };
 
 function draw() {
@@ -137,7 +139,7 @@ function windowResized() {
 };
 
 function mousePressed() {
-  if(!clusteringBegan){
+  if(!clusteringBegan && !waitingForDownload){
     if (mouseIsOnCanvas()){
       pressedNodeId = getNodeId(mouseX, mouseY);
       if (keyIsDown(77)) { // 77: keyCode for "m"
@@ -152,7 +154,7 @@ function mousePressed() {
 }
 
 function mouseReleased() {
-  if(!clusteringBegan){
+  if(!clusteringBegan && !waitingForDownload){
     if (mouseIsOnCanvas()) {
       releasedNodeId = getNodeId(mouseX, mouseY);
       if (pressedNodeId != releasedNodeId) { // CHANGE THIS WHEN DIRECTED/UNDIRECTED IS IMPLEMENTED!
@@ -172,7 +174,7 @@ function mouseReleased() {
 }
 
 function mouseDragged() {
-  if (mouseIsOnCanvas() && !clusteringBegan) {
+  if (mouseIsOnCanvas() && !clusteringBegan && !waitingForDownload) {
     if (isMovingNode) {
       nodes.set([pressedNodeId, 0], mouseX/width);
       nodes.set([pressedNodeId, 1], mouseY/height);
@@ -181,7 +183,7 @@ function mouseDragged() {
 }
 
 function mouseWheel(event) {
-  if (!clusteringBegan) {
+  if (!clusteringBegan && !waitingForDownload) {
     let weightFactor = 1;
     if(event.delta < 0) { weightFactor = 1.05;
     } else {              weightFactor = 0.95;
@@ -354,25 +356,24 @@ function setClusterizationSpeed(value) {
   clusterizationSpeedValue = value;
 }
 
-function setGraphDirection(value) {
-  graphDirection = value;
-}
-
 function setGraphMovement(value) {
   graphMovement = value;
 }
 
 function record() {
   if(isRecording) {
-    console.log("stopping capturer:");
     isRecording = false;
+    blockUser();
     capturer.stop();
-    capturer.save();
+    capturer.save(function( blob ) {
+      download( blob, 'animatedGraph.gif', 'image/gif' );
+      unBlockUser();
+      return false;
+    });
+    // capturer.save();
   } else {
-    console.log("starting capturer:");
     try {
       capturer.start();
-      console.log("capturer started!")
     } catch (e) {
       console.log("error in capturer.start(): "+e);
     } finally {
@@ -412,7 +413,6 @@ function stepClustering() {
   newClusteredEdges = math.dotPow(newClusteredEdges, inflationValue); // Inflate
   newClusteredEdges = math.dotDivide(newClusteredEdges, newClusteredEdges.colSum().broadcast()) ; // Renormalize
   let pruneTreshold = pruneTresholdValue/newClusteredEdges.size()[0];
-  console.log("pruneTreshold: "+pruneTreshold);
   newClusteredEdges = math.map(newClusteredEdges, function(value){ // Prune
     if(value < pruneTreshold) return 0; else return value;
   });
@@ -452,12 +452,21 @@ function updatePlayPauseButton(){
 function updateRecButton(){
   if (isRecording) {
     document.getElementById("recButtonIcon").style.color = "red";
-
-    // $('#recButton').style.color = "red";
+    document.getElementById("recButton").classList.add("pulsate");
   } else {
-    // $('#recButton').style.color = "rgb(2, 97, 197)";
     document.getElementById("recButtonIcon").style.color = "rgb(2, 97, 197)";
+    document.getElementById("recButton").classList.remove("pulsate");
   }
+}
+
+function blockUser() {
+  $("#blockUserOverlay").show();
+  waitingForDownload = true;
+}
+
+function unBlockUser() {
+  $("#blockUserOverlay").hide();
+  waitingForDownload = false;
 }
 
 function writeInfoOnCanvas() {
@@ -465,7 +474,6 @@ function writeInfoOnCanvas() {
   fill(color(0, 0, 0));
   text('Clustering iteration number: '+clusterIterationNumber+' '+
         (clusteringConverged ? '(converged!)':'')+'\n'+
-       // 'Graph direction: '+graphDirection+'\n'+
        'Prune treshold: '+pruneTresholdValue+'\n'+
        'Inflation: '+inflationValue,
        0.03*width, 0.03*height);

@@ -964,7 +964,7 @@ function CCapture( settings ) {
 	}
 }
 
-(freeWindow || freeSelf || {}).CCapture = CCapture;
+  (freeWindow || freeSelf || {}).CCapture = CCapture;
 
   // Some AMD build optimizers like r.js check for condition patterns like the following:
   if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) {
@@ -973,7 +973,7 @@ function CCapture( settings ) {
     define(function() {
     	return CCapture;
     });
-}
+  }
   // Check for `exports` after `define` in case a build optimizer adds an `exports` object.
   else if (freeExports && freeModule) {
     // Export for Node.js.
@@ -982,10 +982,10 @@ function CCapture( settings ) {
     }
     // Export for CommonJS support.
     freeExports.CCapture = CCapture;
-}
-else {
+  }
+  else {
     // Export to the global object.
     root.CCapture = CCapture;
-}
+  }
 
 }());

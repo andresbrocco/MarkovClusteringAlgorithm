@@ -16,11 +16,11 @@
 
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="./js/bootstrap/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/6.6.4/math.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore.js"></script>
-
 
     <!-- CCapture to record animation -->
     <!-- <script src="CCapture.all.min.js"></script> -->
@@ -41,6 +41,7 @@
   </head>
 
   <body>
+    <div id="blockUserOverlay"></div>
     <div class="row m-0">
       <div class="col-6 col-sm-7 col-md-8 col-lg-9 col-xl-10 p-0">
         <div id="sketch-holder"></div>
@@ -48,32 +49,11 @@
       <div class="col-6 col-sm-5 col-md-4 col-lg-3 col-xl-2 p-3 d-flex flex-column justify-content-around flex-wrap parameterColumn shadow">
         <h3>Parameters:</h3>
         <div>
-          <label>Graph Type:</label><br>
-          <div class="text-center">
-            <div class="btn-group btn-group-toggle m-1 shadow-sm" data-toggle="buttons">
-              <label class="btn btn-sm btn-primary active">
-                <input type="radio" name="graphDirection" id="undirectedGraph" autocomplete="off" checked onclick="setGraphDirection('undirected');"> Undirected <i class="fa fa-arrows-h"></i>
-              </label>
-              <label class="btn btn-sm btn-primary">
-                <input type="radio" name="graphDirection" id="directedGraph" autocomplete="off" onclick="setGraphDirection('directed');"> Directed <i class="fa fa-exchange"></i>
-              </label>
-            </div>
-            <div class="btn-group btn-group-toggle m-1 shadow-sm" data-toggle="buttons">
-              <label class="btn btn-sm btn-primary active">
-                <input type="radio" name="graphMovement" id="fixedGraph" autocomplete="off" checked onclick="setGraphMovement('fixed');"> Fixed <i class="fa fa-thumb-tack "></i>
-              </label>
-              <label class="btn btn-sm btn-primary">
-                <input type="radio" name="graphMovement" id="relaxedGraph" autocomplete="off" onclick="setGraphMovement('relaxed');"> Relaxed <img src="./images/relaxIcon.png" class="relaxIcon"/>
-              </label>
-            </div>
-          </div>
-        </div>
-        <div>
           <label for="inflationValue" class="">Inflation:</label><span class="inflationSpan ml-2">2</span>
           <div class="d-flex justify-content-center">
             <span class="mr-2">0.5</span>
             <form class="range-field">
-              <input id="inflationValue" class="custom-range" type="range" min="0.5" step="0.1" max="4" />
+              <input id="inflationValue" class="custom-range" type="range" value="2" min="0.5" step="0.1" max="4" />
             </form>
             <span class="ml-2">4</span>
           </div>
@@ -83,7 +63,7 @@
           <div class="d-flex justify-content-center">
             <span class="mr-2">0.2</span>
             <form class="range-field">
-              <input id="pruneTresholdValue" class="custom-range" type="range" min="0.2" step="0.1" max="4" />
+              <input id="pruneTresholdValue" class="custom-range" type="range" min="0.2" max="4" value="1" step="0.1"/>
             </form>
             <span class="ml-2">4</span>
           </div>
@@ -93,9 +73,19 @@
           <div class="d-flex justify-content-center">
             <span class="mr-2">0.2</span>
             <form class="range-field">
-              <input id="clusterizationSpeedValue" class="custom-range" type="range" min="0.2" step="0.1" max="4" />
+              <input id="clusterizationSpeedValue" class="custom-range" type="range" value="1" min="0.2" step="0.1" max="4" />
             </form>
             <span class="ml-2">4</span>
+          </div>
+        </div>
+        <div class="text-center">
+          <div class="btn-group btn-group-toggle m-1 shadow-sm" data-toggle="buttons">
+            <label class="btn btn-sm btn-primary active">
+              <input type="radio" name="graphMovement" id="fixedGraph" autocomplete="off" checked onclick="setGraphMovement('fixed');"> Fixed <i class="fa fa-thumb-tack "></i>
+            </label>
+            <label class="btn btn-sm btn-primary">
+              <input type="radio" name="graphMovement" id="relaxedGraph" autocomplete="off" onclick="setGraphMovement('relaxed');"> Relaxed <img src="./images/relaxIcon.png" class="relaxIcon"/>
+            </label>
           </div>
         </div>
         <div class="d-flex justify-content-around">
