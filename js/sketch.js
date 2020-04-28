@@ -23,8 +23,9 @@ let randomForce = math.matrix();
 let clusteringConverged = false;
 let clusterIterationNumber = 0;
 let isRecording = false;
-let capturer;
+let gif;
 let waitingForDownload = false;
+let targetFrameRate = 30;
 
 math.DenseMatrix.prototype.broadcast = function () {
   let broadcasted;
@@ -81,8 +82,7 @@ math.DenseMatrix.prototype.colAverage = function() {
 function setup() {
   var canvas = createCanvas(parseFloat(select('#sketch-holder').style('width')), parseFloat( select('#sketch-holder').style('height')));
   canvas.parent('sketch-holder');
-  frameRate(30);
-  capturer = new CCapture( { format: 'gif', workersPath: './js/ccapture/', framerate: 30} );
+  frameRate(targetFrameRate);
   pruneTresholdValue = document.getElementById("pruneTresholdValue").value;
   inflationValue = document.getElementById("inflationValue").value;
 };
@@ -94,7 +94,7 @@ function draw() {
   drawNodes();
   drawEdges();
   writeInfoOnCanvas();
-  capturer.capture(document.getElementById('defaultCanvas0'));
+  if(isRecording) gif.addFrame(document.getElementById('defaultCanvas0'), {copy:true, delay: 1000/targetFrameRate});
 };
 
 function relaxGraph(){
@@ -364,21 +364,11 @@ function record() {
   if(isRecording) {
     isRecording = false;
     blockUser();
-    capturer.stop();
-    capturer.save(function( blob ) {
-      download( blob, 'animatedGraph.gif', 'image/gif' );
-      unBlockUser();
-      return false;
-    });
+    gif.render();
   } else {
-    try {
-      capturer = new CCapture( { format: 'gif', workersPath: './js/ccapture/', framerate: 30} );
-      capturer.start();
-    } catch (e) {
-      console.log("error in capturer.start(): "+e);
-    } finally {
-      isRecording = true;
-    }
+    gif = new GIF({workers:2, quality:10, workerScript:'./js/gif.worker.js'});
+    gif.on('finished', function(generatedGif) {unBlockUser(); window.open(URL.createObjectURL(generatedGif));});
+    isRecording = true;
   }
   updateRecButton();
 }
