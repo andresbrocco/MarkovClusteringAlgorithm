@@ -364,9 +364,9 @@ function record() {
   if(isRecording) {
     isRecording = false;
     blockUser();
-    gif.render();
+    gif.render(function(progressPercentage) {document.getElementById('gifProgressBar').style.width = (100*progressPercentage+"%")}); // Percentage is from 0 to 1;
   } else {
-    gif = new GIF({workers:2, quality:10, workerScript:'./js/gif.worker.js'});
+    gif = new GIF({workers:3, quality:10, workerScript:'./js/gif.worker.js'});
     gif.on('finished', function(generatedGif) {unBlockUser(); window.open(URL.createObjectURL(generatedGif));});
     isRecording = true;
   }
