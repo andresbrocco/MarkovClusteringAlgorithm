@@ -18,4 +18,5 @@ $(document).ready(function() {
 
 function editPencilButtonClicked() {
   document.getElementById('editTips').classList.toggle('is-closed');
+  editTipsIsOpened = !editTipsIsOpened;
 }

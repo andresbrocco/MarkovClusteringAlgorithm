@@ -28,6 +28,7 @@ let gif;
 let waitingForDownload = false;
 let targetFrameRate = 30;
 let segregationMethod = 'standard'; // 'standard' or 'regularized'
+let editTipsIsOpened = false;
 
 math.DenseMatrix.prototype.broadcast = function () {
   let broadcasted;
@@ -338,8 +339,27 @@ function drawNodes() {
   }
 
   function mouseIsOnCanvas() {
+    console.log("mouse:"+mouseX+" "+mouseY);
     if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
-      return true;
+      if(editTipsIsOpened) {
+        if(mouseY > 192) {
+          return true;
+        } else if(mouseX <= width-224) {
+          return true;
+        } else if(mouseX <= width-192 && mouseY > 48){
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+          if(mouseY > 48) {
+            return true;
+          } else if(mouseX <= width-32) {
+            return true;
+          } else {
+            return false;
+          }
+        }
     } else {
       return false;
     }
