@@ -1,6 +1,4 @@
-$(document).ready(
-
-  function() {
+$(document).ready(function() {
     const $inflationSpan = $('.inflationSpan');
     const $inflationValue = $('#inflationValue');
     $inflationSpan.html($inflationValue.val());
@@ -15,7 +13,9 @@ $(document).ready(
     const $clusterizationSpeedValue = $('#clusterizationSpeedValue');
     $clusterizationSpeedSpan.html($clusterizationSpeedValue.val());
     $clusterizationSpeedValue.on('input change', () => { $clusterizationSpeedSpan.html($clusterizationSpeedValue.val()); setClusterizationSpeed($clusterizationSpeedValue.val())});
-
   }
-
 );
+
+function editPencilButtonClicked() {
+  document.getElementById('editTips').classList.toggle('is-closed');
+}

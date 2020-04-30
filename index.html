@@ -49,7 +49,20 @@
       <div class="col-6 col-sm-7 col-md-8 col-lg-9 col-xl-10 p-0">
         <div id="sketch-holder"></div>
       </div>
-      <div class="col-6 col-sm-5 col-md-4 col-lg-3 col-xl-2 p-3 d-flex flex-column justify-content-around flex-wrap parameterColumn shadow">
+      <div style="position:relative; width:0; height:100vh">
+        <div id="editTips" class="is-closed">
+          <div class="shadow editTipsTongue">
+            <button type="button" name="editPencilButton" class="editPencilButton" onclick="editPencilButtonClicked();"><i class="fa fa-pencil" aria-hidden="true"></i></button>
+          </div>
+          <div class="shadow editTipsBody p-3 text-center">
+            <h5 class="my-2">Edit keys:</h5>
+            <div class="my-2"><div class="fakeKeyboardKey">d</div> + <img src="./images/Mouse-Left-Click-icon.png" alt="mouse left click" style="height:1rem;"> : delete node</div>
+            <div class="my-2"><div class="fakeKeyboardKey">m</div> + <img src="./images/Mouse-Left-Click-icon.png" alt="mouse left click" style="height:1rem;"> : move node</div>
+            <div class="my-2"><img src="./images/Mouse-Scrolling-icon.png" alt="mouse scrolling" style="height:1rem;"> : change edge weight</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-5 col-md-4 col-lg-3 col-xl-2 p-3 d-flex flex-column justify-content-around flex-wrap parameterColumn shadow" style="z-index:20;">
         <h3>Parameters:</h3>
         <div>
           <label for="segregationMethod" class="">Segregation method:</label>
